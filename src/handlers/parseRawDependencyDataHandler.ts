@@ -21,9 +21,9 @@ export async function parseRawDependencyDataHandler(project: MavenProject): Prom
     treeContent = treeContent.replace(/\\/g, "+");
     treeContent = treeContent.replace(/\n/g, "\r\n");
     // handle the version switch in conflict
-    // input = (groupId:artifactId:)(version1)(:scope (omitted for conflict): (version2))
-    // output = (groupId:artifactId:)(version2)(:scope (omitted for conflict) with (version1))
-    const re = /([\w.]+:[\w.-]+:)([\w.-]+)(:[\w/.(\s]+):\s([\w.-]+)\)/gm;
+    // input = (groupId:artifactId:)(version1)(:type:scope (omitted for conflict): (version2))
+    // output = (groupId:artifactId:)(version2)(:type:scope (omitted for conflict) with (version1))
+    const re = /([\w.]+:[\w.-]+:)([\w.-]+)(:[\w/.:(\s]+):\s([\w.-]+)\)/gm;
     treeContent = treeContent.replace(re, "$1$4$3 with $2)");
     project.fullText = treeContent;
 
@@ -54,7 +54,7 @@ async function parseTreeNodes(treecontent: string, eol: string, indent: string, 
                 supplement = name.substr(indexCut);
                 name = name.substr(0, indexCut - 1);
             }
-            const [gid, aid, version, scope] = name.split(":");
+            const [gid, aid, version, dtype, scope] = name.split(":");
             let effectiveVersion: string;
             let omittedStatus: IOmittedStatus | undefined;
             if (supplement.indexOf(CONFLICT_INDICATOR) !== -1) {
@@ -64,7 +64,7 @@ async function parseTreeNodes(treecontent: string, eol: string, indent: string, 
             } else if (supplement.indexOf(DUPLICATE_INDICATOR) !== -1) {
                 omittedStatus = {status: "duplicate", effectiveVersion: version, description: supplement};
             }
-            return new Dependency(gid, aid, version, scope, projectPomPath, omittedStatus);
+            return new Dependency(gid, aid, version, dtype, scope, projectPomPath, omittedStatus);
         };
         lines.forEach(line => {
             curIndentCnt = line.indexOf(prefix);

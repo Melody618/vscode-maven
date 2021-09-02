@@ -12,14 +12,16 @@ export class Dependency extends TreeNode implements ITreeItem {
     public groupId: string;
     public artifactId: string;
     public version: string;
+    public dtype: string;
     public scope: string;
     public omittedStatus?: IOmittedStatus;
     public uri: vscode.Uri;
-    constructor(gid: string, aid: string, version: string, scope: string, projectPomPath: string, omittedStatus?: IOmittedStatus) {
+    constructor(gid: string, aid: string, version: string, dtype: string, scope: string, projectPomPath: string, omittedStatus?: IOmittedStatus) {
         super();
         this.groupId = gid;
         this.artifactId = aid;
         this.version = version;
+        this.dtype = dtype;
         this.scope = scope;
         this.fullArtifactName = [gid, aid, version, scope].join(":");
         this.projectPomPath = projectPomPath;

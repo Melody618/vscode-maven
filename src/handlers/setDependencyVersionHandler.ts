@@ -31,6 +31,7 @@ export async function setDependencyVersionHandler(selectedItem?: any): Promise<v
 
     const gid: string = selectedItem.groupId;
     const aid: string = selectedItem.artifactId;
+    const dependencyType: string = selectedItem.dtype;
     const versions: string[] = getAllVersionsInTree(pomPath, gid, aid);
     const OPTION_SEARCH_MAVEN_CENTRAL: string = "Search Maven Central Repository...";
     versions.push(OPTION_SEARCH_MAVEN_CENTRAL);
@@ -55,11 +56,11 @@ export async function setDependencyVersionHandler(selectedItem?: any): Promise<v
         selectedVersion = selectedVersionFromMavenCentral;
     }
     if (selectedVersion !== effectiveVersion) {
-        await setDependencyVersion(pomPath, gid, aid, selectedVersion);
+        await setDependencyVersion(pomPath, gid, aid, selectedVersion, dependencyType);
     }
 }
 
-async function setDependencyVersion(pomPath: string, gid: string, aid: string, version: string): Promise<void> {
+async function setDependencyVersion(pomPath: string, gid: string, aid: string, version: string, dependencyType: string): Promise<void> {
     const pomDocument = await vscode.window.showTextDocument(vscode.Uri.file(pomPath), {preserveFocus: true});
     const projectNodes: ElementNode[] = getNodesByTag(pomDocument.document.getText(), XmlTagName.Project);
     if (projectNodes === undefined || projectNodes.length !== 1) {
@@ -76,13 +77,13 @@ async function setDependencyVersion(pomPath: string, gid: string, aid: string, v
     );
 
     if (dependencyManagementNode !== undefined) {
-        await insertDependencyManagement(pomPath, dependencyManagementNode, deleteNode, gid, aid, version);
+        await insertDependencyManagement(pomPath, dependencyManagementNode, deleteNode, gid, aid, version, dependencyType);
     } else {
-        await insertDependencyManagement(pomPath, projectNode, deleteNode, gid, aid, version);
+        await insertDependencyManagement(pomPath, projectNode, deleteNode, gid, aid, version, dependencyType);
     }
 }
 
-async function insertDependencyManagement(pomPath: string, targetNode: ElementNode, deleteNode: ElementNode | undefined, gid: string, aid: string, version: string): Promise<void> {
+async function insertDependencyManagement(pomPath: string, targetNode: ElementNode, deleteNode: ElementNode | undefined, gid: string, aid: string, version: string, dependencyType: string): Promise<void> {
     if ( targetNode.contentStart === undefined || targetNode.contentEnd === undefined) {
         throw new UserError("Invalid target XML node to insert dependency management.");
     }
